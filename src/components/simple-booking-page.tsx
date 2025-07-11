@@ -16,7 +16,7 @@ interface BookingFormData {
 export function SimpleBookingPage() {
   const [currentDate, setCurrentDate] = useState(new Date())
   const [selectedDate, setSelectedDate] = useState<string>('')
-  const [selectedTime, setSelectedTime] = useState<string>('')
+  const [selectedTimes, setSelectedTimes] = useState<string[]>([])
   const [showBookingForm, setShowBookingForm] = useState(false)
   const [bookingData, setBookingData] = useState<BookingFormData>({
     name: '',
@@ -27,16 +27,18 @@ export function SimpleBookingPage() {
   })
 
   const availableServices = [
-    { id: 'consultation', name: 'Consultation', duration: '30 min', price: '$50' },
-    { id: 'treatment', name: 'Treatment', duration: '60 min', price: '$100' },
+    { id: 'consultation', name: 'Consultation', duration: '45 min', price: '$50' },
+    { id: 'treatment', name: 'Treatment', duration: '45 min', price: '$100' },
     { id: 'therapy', name: 'Therapy Session', duration: '45 min', price: '$75' },
     { id: 'checkup', name: 'Health Checkup', duration: '90 min', price: '$150' }
   ]
 
+  // Custom time slots as specified
   const timeSlots = [
-    '09:00', '09:30', '10:00', '10:30', '11:00', '11:30',
-    '12:00', '12:30', '13:00', '13:30', '14:00', '14:30',
-    '15:00', '15:30', '16:00', '16:30', '17:00', '17:30'
+    '07:00', '07:45', '08:30', '09:05', '09:15', '10:00', '10:45', 
+    '11:30', '12:15', '13:00', '13:45', '14:30', '15:05', '15:15', 
+    '16:00', '16:45', '17:30', '18:15', '19:00', '19:45', '20:30', 
+    '21:05', '21:15', '22:00', '22:45', '23:30'
   ]
 
   const bookedSlots = {
@@ -98,7 +100,26 @@ export function SimpleBookingPage() {
   }
 
   const handleTimeSelect = (time: string) => {
-    setSelectedTime(time)
+    setSelectedTimes(prev => {
+      if (prev.includes(time)) {
+        // Remove time if already selected
+        return prev.filter(t => t !== time)
+      } else {
+        // Add time if not selected
+        return [...prev, time].sort()
+      }
+    })
+    
+    // Show booking form when at least one time is selected
+    if (selectedTimes.length > 0 || !selectedTimes.includes(time)) {
+      setShowBookingForm(true)
+    }
+  }
+
+  const handleReserveFullDay = () => {
+    // Get all available time slots for the selected date (not booked)
+    const availableSlots = timeSlots.filter(time => !isTimeSlotBooked(time))
+    setSelectedTimes(availableSlots)
     setShowBookingForm(true)
   }
 
@@ -112,7 +133,7 @@ export function SimpleBookingPage() {
     console.log('Booking submitted:', {
       ...bookingData,
       date: selectedDate,
-      time: selectedTime
+      times: selectedTimes
     })
     
     setBookingData({
@@ -124,7 +145,7 @@ export function SimpleBookingPage() {
     })
     setShowBookingForm(false)
     setSelectedDate('')
-    setSelectedTime('')
+    setSelectedTimes([])
     
     alert('Booking submitted successfully!')
   }
@@ -213,7 +234,34 @@ export function SimpleBookingPage() {
                 {/* Time Slots */}
                 {selectedDate && (
                   <div className="mt-6">
-                    <h3 className="text-lg font-medium mb-3 text-white">Available Time Slots</h3>
+                    <div className="flex items-center justify-between mb-3">
+                      <h3 className="text-lg font-medium text-white">Available Time Slots</h3>
+                      <div className="flex items-center gap-2">
+                        <Button
+                          variant="outline"
+                          size="sm"
+                          onClick={handleReserveFullDay}
+                          className="text-xs bg-[#00b97e] hover:bg-[#00b97e]/80 text-white border-[#00b97e]"
+                        >
+                          Reserve Full Day
+                        </Button>
+                        {selectedTimes.length > 0 && (
+                          <>
+                            <span className="text-sm text-[#00b97e]">
+                              {selectedTimes.length} slot{selectedTimes.length > 1 ? 's' : ''} selected
+                            </span>
+                            <Button
+                              variant="outline"
+                              size="sm"
+                              onClick={() => setSelectedTimes([])}
+                              className="text-xs"
+                            >
+                              Clear All
+                            </Button>
+                          </>
+                        )}
+                      </div>
+                    </div>
                     <div className="text-sm text-gray-300 mb-3">
                       {new Date(selectedDate).toLocaleDateString('en-US', {
                         weekday: 'long',
@@ -222,11 +270,14 @@ export function SimpleBookingPage() {
                         day: 'numeric'
                       })}
                     </div>
-                    <div className="grid grid-cols-4 gap-2">
+                    <div className="text-xs text-gray-400 mb-3">
+                      Click individual time slots to select them, or use "Reserve Full Day" to select all available slots
+                    </div>
+                    <div className="grid grid-cols-6 gap-2">
                       {timeSlots.map((time) => (
                         <Button
                           key={time}
-                          variant={selectedTime === time ? "default" : "outline"}
+                          variant={selectedTimes.includes(time) ? "default" : "outline"}
                           size="sm"
                           onClick={() => handleTimeSelect(time)}
                           disabled={isTimeSlotBooked(time)}
@@ -248,7 +299,7 @@ export function SimpleBookingPage() {
           {/* Booking Form Section */}
           <div className="space-y-6 relative">
             {/* Booking Form */}
-            {showBookingForm && (
+            {showBookingForm && selectedTimes.length > 0 && (
               <Card>
                 <CardHeader>
                   <CardTitle className="flex items-center gap-2">
@@ -261,7 +312,7 @@ export function SimpleBookingPage() {
                       year: 'numeric',
                       month: 'long',
                       day: 'numeric'
-                    })} at {selectedTime}
+                    })} at {selectedTimes.join(', ')}
                   </CardDescription>
                 </CardHeader>
                 <CardContent>
