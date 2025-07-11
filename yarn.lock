@@ -326,6 +326,18 @@
     "@nodelib/fs.scandir" "2.1.5"
     fastq "^1.6.0"
 
+"@preact/signals-core@^1.11.0":
+  version "1.11.0"
+  resolved "https://registry.yarnpkg.com/@preact/signals-core/-/signals-core-1.11.0.tgz#9707b75684f009a9ee04541ae5c59d00fca40c82"
+  integrity sha512-jglbibeWHuFRzEWVFY/TT7wB1PppJxmcSfUHcK+2J9vBRtiooMfw6tAPttojNYrrpdGViqAYCbPpmWYlMm+eMQ==
+
+"@preact/signals@^2.2.1":
+  version "2.2.1"
+  resolved "https://registry.yarnpkg.com/@preact/signals/-/signals-2.2.1.tgz#1935262de30da6d260c20f3a06b05b3ba7cbf944"
+  integrity sha512-cX3mijdjHbbz3dBoJ6z687CGYEOp9ifj3uFnm4UKW+DxXKPMvE2y/VSdm0PXhXmHnr6F0iSnDJ+dLwmV7CYT5A==
+  dependencies:
+    "@preact/signals-core" "^1.11.0"
+
 "@radix-ui/react-compose-refs@1.1.2":
   version "1.1.2"
   resolved "https://registry.yarnpkg.com/@radix-ui/react-compose-refs/-/react-compose-refs-1.1.2.tgz#a2c4c47af6337048ee78ff6dc0d090b390d2bb30"
@@ -456,6 +468,16 @@
   version "4.44.2"
   resolved "https://registry.yarnpkg.com/@rollup/rollup-win32-x64-msvc/-/rollup-win32-x64-msvc-4.44.2.tgz#660018c9696ad4f48abe8c5d56db53c81aadba25"
   integrity sha512-3+QZROYfJ25PDcxFF66UEk8jGWigHJeecZILvkPkyQN7oc5BvFo4YEXFkOs154j3FTMp9mn9Ky8RCOwastduEA==
+
+"@schedule-x/calendar@^2.36.0":
+  version "2.36.0"
+  resolved "https://registry.yarnpkg.com/@schedule-x/calendar/-/calendar-2.36.0.tgz#e6752317ce0e3512bbe25565a3a8aeb6b30040e1"
+  integrity sha512-UqPMoxjok3SFNvgx1+PY5Whmoig+gU7sjy80z68A9QQ1FjIt1Q3ODPZKdA3G0spDss9lDtKilpO393vWpXJyfg==
+
+"@schedule-x/theme-default@^2.36.0":
+  version "2.36.0"
+  resolved "https://registry.yarnpkg.com/@schedule-x/theme-default/-/theme-default-2.36.0.tgz#e538ce8d94ba7a72dfe58b0f884ec53030194927"
+  integrity sha512-jkN9/srYS54dO2h12iCvNMMrLEiod6BAoUc47KbOgGE66zyUU+kmQwUOYQ3A2LrKyIWjwtCp3Ewdd4h/HHvG9A==
 
 "@swc/core-darwin-arm64@1.12.11":
   version "1.12.11"
@@ -1501,6 +1523,11 @@ postcss@^8.5.6:
     nanoid "^3.3.11"
     picocolors "^1.1.1"
     source-map-js "^1.2.1"
+
+preact@^10.26.9:
+  version "10.26.9"
+  resolved "https://registry.yarnpkg.com/preact/-/preact-10.26.9.tgz#b3898d1b65140640799062ad73b89846c293b6a7"
+  integrity sha512-SSjF9vcnF27mJK1XyFMNJzFd5u3pQiATFqoaDy03XuN00u4ziveVVEGt5RKJrDR8MHE/wJo9Nnad56RLzS2RMA==
 
 prelude-ls@^1.2.1:
   version "1.2.1"
