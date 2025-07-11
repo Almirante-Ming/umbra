@@ -71,7 +71,7 @@ function App() {
               <h1 className="text-xl font-semibold text-white">Umbra</h1>
               {isAuthenticated && selectedLab && (
                 <span className="ml-4 text-sm text-gray-300">
-                  Lab: <span className="text-[#00b97e] font-medium">{selectedLab}</span>
+                  Laboratório: <span className="text-[#00b97e] font-medium">{selectedLab}</span>
                 </span>
               )}
             </div>
@@ -81,7 +81,7 @@ function App() {
                   onClick={() => setCurrentPage('lab-selection')}
                   className="text-sm text-gray-300 hover:text-[#00b97e] transition-colors"
                 >
-                  Change Lab
+                  Trocar Laboratório
                 </button>
               )}
               
@@ -90,7 +90,7 @@ function App() {
                   onClick={handleLogin}
                   className="text-sm text-gray-300 hover:text-[#00b97e] transition-colors"
                 >
-                  Login
+                  Entrar
                 </button>
               )}
               
@@ -102,7 +102,7 @@ function App() {
                     : 'text-gray-300 hover:text-[#00b97e] hover:bg-gray-700'
                 }`}
               >
-                Booking
+                Reservar
               </button>
               
               {isAuthenticated && (
@@ -110,7 +110,7 @@ function App() {
                   onClick={handleLogout}
                   className="px-3 py-2 rounded-md text-sm font-medium text-gray-300 hover:text-red-400 hover:bg-gray-700 transition-colors"
                 >
-                  Logout
+                  Sair
                 </button>
               )}
             </div>
@@ -122,9 +122,6 @@ function App() {
       <main>
         {currentPage === 'simple-booking' && (
           <div>
-            <div className="p-4 bg-[#00b97e] bg-opacity-20 text-[#00b97e] text-sm border-b border-[#00b97e]">
-              Debug: Showing booking page for lab: {selectedLab}
-            </div>
             <SimpleBookingPage />
           </div>
         )}

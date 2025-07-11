@@ -6,11 +6,10 @@ import { Label } from '@/components/ui/label'
 import { CalendarDays, Clock, MapPin, ChevronLeft, ChevronRight } from 'lucide-react'
 
 interface BookingFormData {
-  name: string
-  email: string
-  phone: string
-  service: string
-  notes: string
+  userName: string
+  course: string
+  annotation: string
+  repeatType: 'none' | 'daily' | 'weekly' | 'monthly'
 }
 
 export function SimpleBookingPage() {
@@ -19,18 +18,21 @@ export function SimpleBookingPage() {
   const [selectedTimes, setSelectedTimes] = useState<string[]>([])
   const [showBookingForm, setShowBookingForm] = useState(false)
   const [bookingData, setBookingData] = useState<BookingFormData>({
-    name: '',
-    email: '',
-    phone: '',
-    service: '',
-    notes: ''
+    userName: 'João Silva', // This would be bypassed by login in real implementation
+    course: '',
+    annotation: '',
+    repeatType: 'none'
   })
 
-  const availableServices = [
-    { id: 'consultation', name: 'Consultation', duration: '45 min', price: '$50' },
-    { id: 'treatment', name: 'Treatment', duration: '45 min', price: '$100' },
-    { id: 'therapy', name: 'Therapy Session', duration: '45 min', price: '$75' },
-    { id: 'checkup', name: 'Health Checkup', duration: '90 min', price: '$150' }
+  const availableCourses = [
+    { id: 'mathematics', name: 'Matemática' },
+    { id: 'physics', name: 'Física' },
+    { id: 'chemistry', name: 'Química' },
+    { id: 'biology', name: 'Biologia' },
+    { id: 'computer-science', name: 'Ciência da Computação' },
+    { id: 'engineering', name: 'Engenharia' },
+    { id: 'electronics', name: 'Eletrônica' },
+    { id: 'automation', name: 'Automação' }
   ]
 
   // Custom time slots as specified
@@ -136,18 +138,55 @@ export function SimpleBookingPage() {
       times: selectedTimes
     })
     
+    // Create repeated bookings if needed
+    if (bookingData.repeatType !== 'none') {
+      createRepeatedBookings()
+    }
+    
     setBookingData({
-      name: '',
-      email: '',
-      phone: '',
-      service: '',
-      notes: ''
+      userName: 'João Silva', // Keep the user name from login
+      course: '',
+      annotation: '',
+      repeatType: 'none'
     })
     setShowBookingForm(false)
     setSelectedDate('')
     setSelectedTimes([])
     
-    alert('Booking submitted successfully!')
+    alert('Reserva enviada com sucesso!')
+  }
+
+  const createRepeatedBookings = () => {
+    const baseDate = new Date(selectedDate)
+    const bookings = []
+    
+    // Create repeated bookings based on repeat type
+    for (let i = 1; i <= 10; i++) { // Create 10 repeated bookings as example
+      const nextDate = new Date(baseDate)
+      
+      switch (bookingData.repeatType) {
+        case 'daily':
+          nextDate.setDate(baseDate.getDate() + i)
+          break
+        case 'weekly':
+          nextDate.setDate(baseDate.getDate() + (i * 7))
+          break
+        case 'monthly':
+          nextDate.setMonth(baseDate.getMonth() + i)
+          break
+        default:
+          continue
+      }
+      
+      bookings.push({
+        date: nextDate.toISOString().split('T')[0],
+        times: selectedTimes,
+        ...bookingData
+      })
+    }
+    
+    console.log('Repeated bookings created:', bookings)
+    return bookings
   }
 
   const handleInputChange = (field: keyof BookingFormData, value: string) => {
@@ -168,21 +207,21 @@ export function SimpleBookingPage() {
     <div className="bg-gray-900 min-h-screen p-4">
       <div className="max-w-7xl mx-auto">
         <div className="mb-8">
-          <h1 className="text-3xl font-bold text-white mb-2">Book an Appointment</h1>
-          <p className="text-gray-300">Select a date and time for your appointment</p>
+          <h1 className="text-3xl font-bold text-white mb-2">Reservar Laboratório</h1>
+          <p className="text-gray-300">Selecione uma data e horário para sua reserva</p>
         </div>
 
         <div className="grid grid-cols-1 lg:grid-cols-3 gap-6">
           {/* Calendar Section */}
           <div className="lg:col-span-2">
             <Card>
-              <CardHeader>
+              <CardHeader className="border-b border-gray-800">
                 <CardTitle className="flex items-center gap-2">
                   <CalendarDays className="h-5 w-5" />
-                  Select Date & Time
+                  Selecionar Data e Horário
                 </CardTitle>
                 <CardDescription>
-                  Choose your preferred date and time slot
+                  Escolha sua data e horário preferidos
                 </CardDescription>
               </CardHeader>
               <CardContent>
@@ -235,7 +274,7 @@ export function SimpleBookingPage() {
                 {selectedDate && (
                   <div className="mt-6">
                     <div className="flex items-center justify-between mb-3">
-                      <h3 className="text-lg font-medium text-white">Available Time Slots</h3>
+                      <h3 className="text-lg font-medium text-white">Horários Disponíveis</h3>
                       <div className="flex items-center gap-2">
                         <Button
                           variant="outline"
@@ -243,12 +282,12 @@ export function SimpleBookingPage() {
                           onClick={handleReserveFullDay}
                           className="text-xs bg-[#00b97e] hover:bg-[#00b97e]/80 text-white border-[#00b97e]"
                         >
-                          Reserve Full Day
+                          Reservar Dia Inteiro
                         </Button>
                         {selectedTimes.length > 0 && (
                           <>
                             <span className="text-sm text-[#00b97e]">
-                              {selectedTimes.length} slot{selectedTimes.length > 1 ? 's' : ''} selected
+                              {selectedTimes.length} horário{selectedTimes.length > 1 ? 's' : ''} selecionado{selectedTimes.length > 1 ? 's' : ''}
                             </span>
                             <Button
                               variant="outline"
@@ -256,14 +295,14 @@ export function SimpleBookingPage() {
                               onClick={() => setSelectedTimes([])}
                               className="text-xs"
                             >
-                              Clear All
+                              Limpar Tudo
                             </Button>
                           </>
                         )}
                       </div>
                     </div>
                     <div className="text-sm text-gray-300 mb-3">
-                      {new Date(selectedDate).toLocaleDateString('en-US', {
+                      {new Date(selectedDate).toLocaleDateString('pt-BR', {
                         weekday: 'long',
                         year: 'numeric',
                         month: 'long',
@@ -271,7 +310,7 @@ export function SimpleBookingPage() {
                       })}
                     </div>
                     <div className="text-xs text-gray-400 mb-3">
-                      Click individual time slots to select them, or use "Reserve Full Day" to select all available slots
+                      Clique nos horários individuais para selecioná-los, ou use "Reservar Dia Inteiro" para selecionar todos os horários disponíveis
                     </div>
                     <div className="grid grid-cols-6 gap-2">
                       {timeSlots.map((time) => (
@@ -285,7 +324,7 @@ export function SimpleBookingPage() {
                         >
                           {time}
                           {isTimeSlotBooked(time) && (
-                            <span className="ml-1 text-xs">(Booked)</span>
+                            <span className="ml-1 text-xs">(Ocupado)</span>
                           )}
                         </Button>
                       ))}
@@ -301,90 +340,88 @@ export function SimpleBookingPage() {
             {/* Booking Form */}
             {showBookingForm && selectedTimes.length > 0 && (
               <Card>
-                <CardHeader>
+                <CardHeader className="border-b border-gray-800">
                   <CardTitle className="flex items-center gap-2">
                     <MapPin className="h-5 w-5" />
-                    Booking Details
+                    Detalhes da Reserva
                   </CardTitle>
                   <CardDescription>
-                    {new Date(selectedDate).toLocaleDateString('en-US', {
+                    {new Date(selectedDate).toLocaleDateString('pt-BR', {
                       weekday: 'long',
                       year: 'numeric',
                       month: 'long',
                       day: 'numeric'
-                    })} at {selectedTimes.join(', ')}
+                    })} às {selectedTimes.join(', ')}
                   </CardDescription>
                 </CardHeader>
                 <CardContent>
                   <form onSubmit={handleBookingSubmit} className="space-y-4">
                     <div>
-                      <Label htmlFor="name">Full Name</Label>
+                      <Label htmlFor="userName">Nome do Usuário</Label>
                       <Input
-                        id="name"
+                        id="userName"
                         type="text"
-                        value={bookingData.name}
-                        onChange={(e) => handleInputChange('name', e.target.value)}
-                        required
-                        placeholder="Enter your full name"
+                        value={bookingData.userName}
+                        onChange={(e) => handleInputChange('userName', e.target.value)}
+                        disabled
+                        className="bg-gray-700 text-gray-400"
+                        placeholder="Preenchido pelo login"
                       />
+                      <p className="text-xs text-gray-400 mt-1">Este campo é preenchido automaticamente pelo seu login</p>
                     </div>
                     
                     <div>
-                      <Label htmlFor="email">Email</Label>
-                      <Input
-                        id="email"
-                        type="email"
-                        value={bookingData.email}
-                        onChange={(e) => handleInputChange('email', e.target.value)}
-                        required
-                        placeholder="Enter your email"
-                      />
-                    </div>
-                    
-                    <div>
-                      <Label htmlFor="phone">Phone Number</Label>
-                      <Input
-                        id="phone"
-                        type="tel"
-                        value={bookingData.phone}
-                        onChange={(e) => handleInputChange('phone', e.target.value)}
-                        required
-                        placeholder="Enter your phone number"
-                      />
-                    </div>
-                    
-                    <div>
-                      <Label htmlFor="service">Service</Label>
+                      <Label htmlFor="course">Disciplina</Label>
                       <select
-                        id="service"
-                        value={bookingData.service}
-                        onChange={(e) => handleInputChange('service', e.target.value)}
+                        id="course"
+                        value={bookingData.course}
+                        onChange={(e) => handleInputChange('course', e.target.value)}
                         required
                         className="w-full p-2 border border-gray-600 bg-gray-800 text-white rounded-md focus:ring-2 focus:ring-[#00b97e] focus:border-[#00b97e]"
                       >
-                        <option value="">Select a service</option>
-                        {availableServices.map((service) => (
-                          <option key={service.id} value={service.id}>
-                            {service.name} - {service.duration} - {service.price}
+                        <option value="">Selecione uma disciplina</option>
+                        {availableCourses.map((course) => (
+                          <option key={course.id} value={course.id}>
+                            {course.name}
                           </option>
                         ))}
                       </select>
                     </div>
                     
                     <div>
-                      <Label htmlFor="notes">Additional Notes (Optional)</Label>
+                      <Label htmlFor="annotation">Observações</Label>
                       <textarea
-                        id="notes"
-                        value={bookingData.notes}
-                        onChange={(e) => handleInputChange('notes', e.target.value)}
-                        placeholder="Any special requests or information..."
+                        id="annotation"
+                        value={bookingData.annotation}
+                        onChange={(e) => handleInputChange('annotation', e.target.value)}
+                        placeholder="Adicione observações ou comentários sobre esta reserva..."
                         rows={3}
                         className="w-full p-2 border border-gray-600 bg-gray-800 text-white rounded-md focus:ring-2 focus:ring-[#00b97e] focus:border-[#00b97e] placeholder-gray-400"
                       />
                     </div>
                     
+                    <div>
+                      <Label htmlFor="repeatType">Repetir Reserva</Label>
+                      <select
+                        id="repeatType"
+                        value={bookingData.repeatType}
+                        onChange={(e) => handleInputChange('repeatType', e.target.value as 'none' | 'daily' | 'weekly' | 'monthly')}
+                        className="w-full p-2 border border-gray-600 bg-gray-800 text-white rounded-md focus:ring-2 focus:ring-[#00b97e] focus:border-[#00b97e]"
+                      >
+                        <option value="none">Não repetir</option>
+                        <option value="daily">Diariamente</option>
+                        <option value="weekly">Semanalmente</option>
+                        <option value="monthly">Mensalmente</option>
+                      </select>
+                      {bookingData.repeatType !== 'none' && (
+                        <p className="text-xs text-[#00b97e] mt-1">
+                          Isso criará 10 reservas repetidas {bookingData.repeatType === 'daily' ? 'diariamente' : bookingData.repeatType === 'weekly' ? 'semanalmente' : 'mensalmente'}
+                        </p>
+                      )}
+                    </div>
+                    
                     <Button type="submit" className="w-full">
-                      Confirm Booking
+                      Confirmar Reserva
                     </Button>
                   </form>
                 </CardContent>

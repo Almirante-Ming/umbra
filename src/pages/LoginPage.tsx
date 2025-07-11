@@ -46,9 +46,9 @@ export function LoginPage({ onLogin, onGuestAccess, onRegister }: LoginPageProps
       <div className="w-full max-w-md">
         <Card className="w-full bg-gray-800 border-[#00b97e]">
           <CardHeader className="text-center">
-            <CardTitle className="text-2xl font-bold text-white">Welcome to Umbra</CardTitle>
+            <CardTitle className="text-2xl font-bold text-white">Bem-vindo ao Umbra</CardTitle>
             <CardDescription className="text-gray-300">
-              Enter your credentials to access your account
+              Digite suas credenciais para acessar sua conta
             </CardDescription>
             <CardAction>
               <Button 
@@ -56,7 +56,7 @@ export function LoginPage({ onLogin, onGuestAccess, onRegister }: LoginPageProps
                 onClick={onRegister}
                 className="text-[#00b97e] hover:text-[#059669]"
               >
-                Don't have an account? Sign Up
+                Não tem uma conta? Cadastre-se
               </Button>
             </CardAction>
           </CardHeader>
@@ -64,11 +64,11 @@ export function LoginPage({ onLogin, onGuestAccess, onRegister }: LoginPageProps
             <form onSubmit={handleSubmit}>
               <div className="flex flex-col gap-6">
                 <div className="grid gap-2">
-                  <Label htmlFor="email" className="text-gray-200">Email</Label>
+                  <Label htmlFor="email" className="text-gray-200">E-mail</Label>
                   <Input
                     id="email"
                     type="email"
-                    placeholder="m@example.com"
+                    placeholder="usuario@exemplo.com"
                     value={formData.email}
                     onChange={(e) => handleInputChange('email', e.target.value)}
                     required
@@ -77,12 +77,12 @@ export function LoginPage({ onLogin, onGuestAccess, onRegister }: LoginPageProps
                 </div>
                 <div className="grid gap-2">
                   <div className="flex items-center">
-                    <Label htmlFor="password" className="text-gray-200">Password</Label>
+                    <Label htmlFor="password" className="text-gray-200">Senha</Label>
                     <a
                       href="#"
                       className="ml-auto inline-block text-sm underline-offset-4 hover:underline text-[#00b97e] hover:text-[#059669]"
                     >
-                      Forgot your password?
+                      Esqueceu sua senha?
                     </a>
                   </div>
                   <Input 
@@ -103,7 +103,7 @@ export function LoginPage({ onLogin, onGuestAccess, onRegister }: LoginPageProps
               className="w-full bg-[#00b97e] hover:bg-[#059669] text-white"
               onClick={handleSubmit}
             >
-              Sign In
+              Entrar
             </Button>
           </CardFooter>
         </Card>
@@ -114,7 +114,7 @@ export function LoginPage({ onLogin, onGuestAccess, onRegister }: LoginPageProps
             onClick={onGuestAccess}
             className="w-full border-[#00b97e] text-[#00b97e] hover:bg-[#00b97e] hover:text-white"
           >
-            Continue as Guest - Book Appointment
+            Continuar como Visitante - Reservar Laboratório
           </Button>
         </div>
       </div>

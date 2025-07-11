@@ -39,35 +39,35 @@ export function RegisterPage({ onRegister, onBack }: RegisterPageProps) {
     const newErrors: Record<string, string> = {}
     
     if (!formData.firstName.trim()) {
-      newErrors.firstName = 'First name is required'
+      newErrors.firstName = 'Nome é obrigatório'
     }
     
     if (!formData.lastName.trim()) {
-      newErrors.lastName = 'Last name is required'
+      newErrors.lastName = 'Sobrenome é obrigatório'
     }
     
     if (!formData.email.trim()) {
-      newErrors.email = 'Email is required'
+      newErrors.email = 'E-mail é obrigatório'
     } else if (!/\S+@\S+\.\S+/.test(formData.email)) {
-      newErrors.email = 'Email is invalid'
+      newErrors.email = 'E-mail inválido'
     }
     
     if (!formData.phone.trim()) {
-      newErrors.phone = 'Phone number is required'
+      newErrors.phone = 'Telefone é obrigatório'
     }
     
     if (!formData.password.trim()) {
-      newErrors.password = 'Password is required'
+      newErrors.password = 'Senha é obrigatória'
     } else if (formData.password.length < 6) {
-      newErrors.password = 'Password must be at least 6 characters'
+      newErrors.password = 'Senha deve ter pelo menos 6 caracteres'
     }
     
     if (formData.password !== formData.confirmPassword) {
-      newErrors.confirmPassword = 'Passwords do not match'
+      newErrors.confirmPassword = 'Senhas não coincidem'
     }
     
     if (!formData.dateOfBirth.trim()) {
-      newErrors.dateOfBirth = 'Date of birth is required'
+      newErrors.dateOfBirth = 'Data de nascimento é obrigatória'
     }
     
     setErrors(newErrors)
@@ -94,24 +94,24 @@ export function RegisterPage({ onRegister, onBack }: RegisterPageProps) {
   }
 
   return (
-    <div className="min-h-screen bg-gray-50 p-4">
+    <div className="min-h-screen bg-gray-900 p-4">
       <div className="max-w-2xl mx-auto">
         <div className="mb-6">
           <Button
             variant="ghost"
             onClick={onBack}
-            className="flex items-center gap-2 text-gray-600 hover:text-gray-900"
+            className="flex items-center gap-2 text-gray-300 hover:text-white"
           >
             <ArrowLeft className="h-4 w-4" />
-            Back to Login
+            Voltar para Login
           </Button>
         </div>
 
-        <Card className="w-full">
+        <Card className="w-full bg-gray-800 border-2 border-[#00b97e]">
           <CardHeader className="text-center">
-            <CardTitle className="text-2xl font-bold">Create Your Account</CardTitle>
-            <CardDescription>
-              Join Umbra to manage your medical appointments and lab tests
+            <CardTitle className="text-2xl font-bold text-white">Criar Sua Conta</CardTitle>
+            <CardDescription className="text-gray-300">
+              Junte-se ao Umbra para gerenciar suas reservas de laboratório
             </CardDescription>
           </CardHeader>
           
@@ -119,125 +119,128 @@ export function RegisterPage({ onRegister, onBack }: RegisterPageProps) {
             <form onSubmit={handleSubmit} className="space-y-6">
               {/* Personal Information */}
               <div className="space-y-4">
-                <h3 className="text-lg font-semibold text-gray-900">Personal Information</h3>
+                <h3 className="text-lg font-semibold text-white">Informações Pessoais</h3>
                 
                 <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
                   <div>
-                    <Label htmlFor="firstName">First Name *</Label>
+                    <Label htmlFor="firstName" className="text-gray-200">Nome *</Label>
                     <Input
                       id="firstName"
                       type="text"
                       value={formData.firstName}
                       onChange={(e) => handleInputChange('firstName', e.target.value)}
-                      className={errors.firstName ? 'border-red-500' : ''}
-                      placeholder="Enter your first name"
+                      className={`bg-gray-700 border-gray-600 text-white placeholder-gray-400 focus:border-[#00b97e] focus:ring-[#00b97e] ${errors.firstName ? 'border-red-500' : ''}`}
+                      placeholder="Digite seu nome"
                     />
                     {errors.firstName && (
-                      <p className="text-sm text-red-600 mt-1">{errors.firstName}</p>
+                      <p className="text-sm text-red-400 mt-1">{errors.firstName}</p>
                     )}
                   </div>
                   
                   <div>
-                    <Label htmlFor="lastName">Last Name *</Label>
+                    <Label htmlFor="lastName" className="text-gray-200">Sobrenome *</Label>
                     <Input
                       id="lastName"
                       type="text"
                       value={formData.lastName}
                       onChange={(e) => handleInputChange('lastName', e.target.value)}
-                      className={errors.lastName ? 'border-red-500' : ''}
-                      placeholder="Enter your last name"
+                      className={`bg-gray-700 border-gray-600 text-white placeholder-gray-400 focus:border-[#00b97e] focus:ring-[#00b97e] ${errors.lastName ? 'border-red-500' : ''}`}
+                      placeholder="Digite seu sobrenome"
                     />
                     {errors.lastName && (
-                      <p className="text-sm text-red-600 mt-1">{errors.lastName}</p>
+                      <p className="text-sm text-red-400 mt-1">{errors.lastName}</p>
                     )}
                   </div>
                 </div>
                 
                 <div>
-                  <Label htmlFor="dateOfBirth">Date of Birth *</Label>
+                  <Label htmlFor="dateOfBirth" className="text-gray-200">Data de Nascimento *</Label>
                   <Input
                     id="dateOfBirth"
                     type="date"
                     value={formData.dateOfBirth}
                     onChange={(e) => handleInputChange('dateOfBirth', e.target.value)}
-                    className={errors.dateOfBirth ? 'border-red-500' : ''}
+                    className={`bg-gray-700 border-gray-600 text-white focus:border-[#00b97e] focus:ring-[#00b97e] ${errors.dateOfBirth ? 'border-red-500' : ''}`}
                   />
                   {errors.dateOfBirth && (
-                    <p className="text-sm text-red-600 mt-1">{errors.dateOfBirth}</p>
+                    <p className="text-sm text-red-400 mt-1">{errors.dateOfBirth}</p>
                   )}
                 </div>
                 
                 <div>
-                  <Label htmlFor="address">Address</Label>
+                  <Label htmlFor="address" className="text-gray-200">Endereço</Label>
                   <Input
                     id="address"
                     type="text"
                     value={formData.address}
                     onChange={(e) => handleInputChange('address', e.target.value)}
-                    placeholder="Enter your full address"
+                    className="bg-gray-700 border-gray-600 text-white placeholder-gray-400 focus:border-[#00b97e] focus:ring-[#00b97e]"
+                    placeholder="Digite seu endereço completo"
                   />
                 </div>
               </div>
 
               {/* Contact Information */}
               <div className="space-y-4">
-                <h3 className="text-lg font-semibold text-gray-900">Contact Information</h3>
+                <h3 className="text-lg font-semibold text-white">Informações de Contato</h3>
                 
                 <div>
-                  <Label htmlFor="email">Email *</Label>
+                  <Label htmlFor="email" className="text-gray-200">E-mail *</Label>
                   <Input
                     id="email"
                     type="email"
                     value={formData.email}
                     onChange={(e) => handleInputChange('email', e.target.value)}
-                    className={errors.email ? 'border-red-500' : ''}
-                    placeholder="Enter your email address"
+                    className={`bg-gray-700 border-gray-600 text-white placeholder-gray-400 focus:border-[#00b97e] focus:ring-[#00b97e] ${errors.email ? 'border-red-500' : ''}`}
+                    placeholder="Digite seu e-mail"
                   />
                   {errors.email && (
-                    <p className="text-sm text-red-600 mt-1">{errors.email}</p>
+                    <p className="text-sm text-red-400 mt-1">{errors.email}</p>
                   )}
                 </div>
                 
                 <div>
-                  <Label htmlFor="phone">Phone Number *</Label>
+                  <Label htmlFor="phone" className="text-gray-200">Telefone *</Label>
                   <Input
                     id="phone"
                     type="tel"
                     value={formData.phone}
                     onChange={(e) => handleInputChange('phone', e.target.value)}
-                    className={errors.phone ? 'border-red-500' : ''}
-                    placeholder="Enter your phone number"
+                    className={`bg-gray-700 border-gray-600 text-white placeholder-gray-400 focus:border-[#00b97e] focus:ring-[#00b97e] ${errors.phone ? 'border-red-500' : ''}`}
+                    placeholder="Digite seu telefone"
                   />
                   {errors.phone && (
-                    <p className="text-sm text-red-600 mt-1">{errors.phone}</p>
+                    <p className="text-sm text-red-400 mt-1">{errors.phone}</p>
                   )}
                 </div>
               </div>
 
               {/* Emergency Contact */}
               <div className="space-y-4">
-                <h3 className="text-lg font-semibold text-gray-900">Emergency Contact</h3>
+                <h3 className="text-lg font-semibold text-white">Contato de Emergência</h3>
                 
                 <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
                   <div>
-                    <Label htmlFor="emergencyContact">Emergency Contact Name</Label>
+                    <Label htmlFor="emergencyContact" className="text-gray-200">Nome do Contato</Label>
                     <Input
                       id="emergencyContact"
                       type="text"
                       value={formData.emergencyContact}
                       onChange={(e) => handleInputChange('emergencyContact', e.target.value)}
-                      placeholder="Contact person's name"
+                      className="bg-gray-700 border-gray-600 text-white placeholder-gray-400 focus:border-[#00b97e] focus:ring-[#00b97e]"
+                      placeholder="Nome da pessoa de contato"
                     />
                   </div>
                   
                   <div>
-                    <Label htmlFor="emergencyPhone">Emergency Contact Phone</Label>
+                    <Label htmlFor="emergencyPhone" className="text-gray-200">Telefone de Emergência</Label>
                     <Input
                       id="emergencyPhone"
                       type="tel"
                       value={formData.emergencyPhone}
                       onChange={(e) => handleInputChange('emergencyPhone', e.target.value)}
-                      placeholder="Contact person's phone"
+                      className="bg-gray-700 border-gray-600 text-white placeholder-gray-400 focus:border-[#00b97e] focus:ring-[#00b97e]"
+                      placeholder="Telefone da pessoa de contato"
                     />
                   </div>
                 </div>
@@ -245,41 +248,41 @@ export function RegisterPage({ onRegister, onBack }: RegisterPageProps) {
 
               {/* Account Security */}
               <div className="space-y-4">
-                <h3 className="text-lg font-semibold text-gray-900">Account Security</h3>
+                <h3 className="text-lg font-semibold text-white">Segurança da Conta</h3>
                 
                 <div>
-                  <Label htmlFor="password">Password *</Label>
+                  <Label htmlFor="password" className="text-gray-200">Senha *</Label>
                   <Input
                     id="password"
                     type="password"
                     value={formData.password}
                     onChange={(e) => handleInputChange('password', e.target.value)}
-                    className={errors.password ? 'border-red-500' : ''}
-                    placeholder="Create a strong password"
+                    className={`bg-gray-700 border-gray-600 text-white placeholder-gray-400 focus:border-[#00b97e] focus:ring-[#00b97e] ${errors.password ? 'border-red-500' : ''}`}
+                    placeholder="Crie uma senha forte"
                   />
                   {errors.password && (
-                    <p className="text-sm text-red-600 mt-1">{errors.password}</p>
+                    <p className="text-sm text-red-400 mt-1">{errors.password}</p>
                   )}
                 </div>
                 
                 <div>
-                  <Label htmlFor="confirmPassword">Confirm Password *</Label>
+                  <Label htmlFor="confirmPassword" className="text-gray-200">Confirmar Senha *</Label>
                   <Input
                     id="confirmPassword"
                     type="password"
                     value={formData.confirmPassword}
                     onChange={(e) => handleInputChange('confirmPassword', e.target.value)}
-                    className={errors.confirmPassword ? 'border-red-500' : ''}
-                    placeholder="Confirm your password"
+                    className={`bg-gray-700 border-gray-600 text-white placeholder-gray-400 focus:border-[#00b97e] focus:ring-[#00b97e] ${errors.confirmPassword ? 'border-red-500' : ''}`}
+                    placeholder="Confirme sua senha"
                   />
                   {errors.confirmPassword && (
-                    <p className="text-sm text-red-600 mt-1">{errors.confirmPassword}</p>
+                    <p className="text-sm text-red-400 mt-1">{errors.confirmPassword}</p>
                   )}
                 </div>
               </div>
 
-              <Button type="submit" className="w-full">
-                Create Account
+              <Button type="submit" className="w-full bg-[#00b97e] hover:bg-[#059669] text-white">
+                Criar Conta
               </Button>
             </form>
           </CardContent>
