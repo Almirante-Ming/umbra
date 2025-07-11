@@ -1,0 +1,92 @@
+{
+  "bookings": [
+    {
+      "id": "1",
+      "date": "2025-07-15",
+      "times": ["09:00", "10:00"],
+      "userName": "João Silva",
+      "course": "physics",
+      "annotation": "Experimento de óptica",
+      "repeatType": "none",
+      "labId": "LF",
+      "status": "confirmed",
+      "createdAt": "2025-07-10T10:30:00Z"
+    },
+    {
+      "id": "2",
+      "date": "2025-07-15",
+      "times": ["14:00"],
+      "userName": "Maria Santos",
+      "course": "chemistry",
+      "annotation": "Análise de compostos orgânicos",
+      "repeatType": "weekly",
+      "labId": "LQ",
+      "status": "confirmed",
+      "createdAt": "2025-07-09T14:20:00Z"
+    },
+    {
+      "id": "3",
+      "date": "2025-07-16",
+      "times": ["11:00", "11:45"],
+      "userName": "Carlos Oliveira",
+      "course": "biology",
+      "annotation": "Microscopia celular",
+      "repeatType": "none",
+      "labId": "LB",
+      "status": "confirmed",
+      "createdAt": "2025-07-08T16:45:00Z"
+    },
+    {
+      "id": "4",
+      "date": "2025-07-16",
+      "times": ["15:30"],
+      "userName": "Ana Costa",
+      "course": "electronics",
+      "annotation": "Montagem de circuitos",
+      "repeatType": "daily",
+      "labId": "LE",
+      "status": "pending",
+      "createdAt": "2025-07-11T09:15:00Z"
+    },
+    {
+      "id": "5",
+      "date": "2025-07-17",
+      "times": ["13:00", "13:45"],
+      "userName": "Pedro Almeida",
+      "course": "computer-science",
+      "annotation": "Programação de microcontroladores",
+      "repeatType": "none",
+      "labId": "LI",
+      "status": "confirmed",
+      "createdAt": "2025-07-10T18:30:00Z"
+    },
+    {
+      "id": "6",
+      "date": "2025-07-17",
+      "times": ["16:00"],
+      "userName": "Lucia Fernandes",
+      "course": "mathematics",
+      "annotation": "Cálculo numérico",
+      "repeatType": "monthly",
+      "labId": "LM",
+      "status": "confirmed",
+      "createdAt": "2025-07-09T11:20:00Z"
+    }
+  ],
+  "availableTimeSlots": [
+    "07:00", "07:45", "08:30", "09:05", "09:15", "10:00", "10:45", 
+    "11:30", "12:15", "13:00", "13:45", "14:30", "15:05", "15:15", 
+    "16:00", "16:45", "17:30", "18:15", "19:00", "19:45", "20:30", 
+    "21:05", "21:15", "22:00", "22:45", "23:30"
+  ],
+  "courses": [
+    { "id": "mathematics", "name": "Matemática" },
+    { "id": "physics", "name": "Física" },
+    { "id": "chemistry", "name": "Química" },
+    { "id": "biology", "name": "Biologia" },
+    { "id": "computer-science", "name": "Ciência da Computação" },
+    { "id": "engineering", "name": "Engenharia" },
+    { "id": "electronics", "name": "Eletrônica" },
+    { "id": "automation", "name": "Automação" }
+  ]
+}

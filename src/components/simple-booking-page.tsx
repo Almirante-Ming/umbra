@@ -1,9 +1,10 @@
-import { useState } from 'react'
+import { useState, useEffect } from 'react'
 import { Button } from '@/components/ui/button'
 import { Card, CardContent, CardDescription, CardHeader, CardTitle } from '@/components/ui/card'
 import { Input } from '@/components/ui/input'
 import { Label } from '@/components/ui/label'
-import { CalendarDays, Clock, MapPin, ChevronLeft, ChevronRight } from 'lucide-react'
+import { CalendarDays, ChevronLeft, ChevronRight } from 'lucide-react'
+import type { BookingData } from '@/services/bookingService'
 
 interface BookingFormData {
   userName: string
@@ -23,6 +24,9 @@ export function SimpleBookingPage() {
     annotation: '',
     repeatType: 'none'
   })
+  const [bookings, setBookings] = useState<BookingData[]>([])
+  const [loading, setLoading] = useState(false)
+  const [error, setError] = useState<string | null>(null)
 
   const availableCourses = [
     { id: 'mathematics', name: 'Matemática' },
@@ -43,10 +47,65 @@ export function SimpleBookingPage() {
     '21:05', '21:15', '22:00', '22:45', '23:30'
   ]
 
-  const bookedSlots = {
-    '2025-07-15': ['09:00', '10:00', '14:00'],
-    '2025-07-16': ['11:00', '15:30'],
-    '2025-07-17': ['13:00', '16:00']
+  // Load bookings from API
+  useEffect(() => {
+    const fetchBookings = async () => {
+      try {
+        setLoading(true)
+        setError(null)
+        
+        // For now, use mock data to avoid API issues
+        // TODO: Replace with actual API call when backend is ready
+        // const response = await bookingService.getBookings()
+        // setBookings(response.bookings)
+        
+        // Mock data for demonstration
+        const mockBookings: BookingData[] = [
+          {
+            id: '1',
+            date: '2025-07-15',
+            times: ['09:00', '10:00', '14:00'],
+            userName: 'João Silva',
+            course: 'physics',
+            annotation: 'Experimento de óptica',
+            repeatType: 'none'
+          },
+          {
+            id: '2',
+            date: '2025-07-16',
+            times: ['11:00', '15:30'],
+            userName: 'Maria Santos',
+            course: 'chemistry',
+            annotation: 'Análise química',
+            repeatType: 'none'
+          },
+          {
+            id: '3',
+            date: '2025-07-17',
+            times: ['13:00', '16:00'],
+            userName: 'Carlos Oliveira',
+            course: 'biology',
+            annotation: 'Microscopia',
+            repeatType: 'none'
+          }
+        ]
+        
+        setBookings(mockBookings)
+      } catch (err) {
+        console.error('Error fetching bookings:', err)
+        setError('Erro ao carregar reservas.')
+      } finally {
+        setLoading(false)
+      }
+    }
+
+    fetchBookings()
+  }, [])
+
+  // Get booked slots for current selected date
+  const getBookedSlotsForDate = (date: string): string[] => {
+    const dateBookings = bookings.filter(booking => booking.date === date)
+    return dateBookings.flatMap(booking => booking.times)
   }
 
   const generateCalendar = () => {
@@ -126,34 +185,75 @@ export function SimpleBookingPage() {
   }
 
   const isTimeSlotBooked = (time: string) => {
-    return bookedSlots[selectedDate as keyof typeof bookedSlots]?.includes(time)
+    const bookedSlots = getBookedSlotsForDate(selectedDate)
+    return bookedSlots.includes(time)
   }
 
-  const handleBookingSubmit = (e: React.FormEvent) => {
+  const handleBookingSubmit = async (e: React.FormEvent) => {
     e.preventDefault()
     
-    console.log('Booking submitted:', {
-      ...bookingData,
-      date: selectedDate,
-      times: selectedTimes
-    })
-    
-    // Create repeated bookings if needed
-    if (bookingData.repeatType !== 'none') {
-      createRepeatedBookings()
+    try {
+      setLoading(true)
+      setError(null)
+
+      // For now, simulate API call with mock data
+      // TODO: Replace with actual API call when backend is ready
+      /*
+      const bookingRequest: CreateBookingRequest = {
+        date: selectedDate,
+        times: selectedTimes,
+        userName: bookingData.userName,
+        course: bookingData.course,
+        annotation: bookingData.annotation,
+        repeatType: bookingData.repeatType
+      }
+
+      const response = await bookingService.createBooking(bookingRequest)
+      */
+      
+      // Simulate API delay
+      await new Promise(resolve => setTimeout(resolve, 1000))
+      
+      // Create mock booking
+      const newBooking: BookingData = {
+        id: Date.now().toString(),
+        date: selectedDate,
+        times: selectedTimes,
+        userName: bookingData.userName,
+        course: bookingData.course,
+        annotation: bookingData.annotation,
+        repeatType: bookingData.repeatType,
+        status: 'confirmed'
+      }
+      
+      // Add the new booking to local state
+      setBookings(prev => [...prev, newBooking])
+      
+      // Create repeated bookings if needed
+      if (bookingData.repeatType !== 'none') {
+        const repeatedBookings = createRepeatedBookings()
+        console.log('Repeated bookings to create:', repeatedBookings)
+      }
+      
+      // Reset form
+      setBookingData({
+        userName: 'João Silva', // Keep the user name from login
+        course: '',
+        annotation: '',
+        repeatType: 'none'
+      })
+      setShowBookingForm(false)
+      setSelectedDate('')
+      setSelectedTimes([])
+      
+      alert('Reserva criada com sucesso!')
+    } catch (err) {
+      console.error('Error creating booking:', err)
+      setError('Erro ao criar reserva. Tente novamente.')
+      alert('Erro ao criar reserva. Tente novamente.')
+    } finally {
+      setLoading(false)
     }
-    
-    setBookingData({
-      userName: 'João Silva', // Keep the user name from login
-      course: '',
-      annotation: '',
-      repeatType: 'none'
-    })
-    setShowBookingForm(false)
-    setSelectedDate('')
-    setSelectedTimes([])
-    
-    alert('Reserva enviada com sucesso!')
   }
 
   const createRepeatedBookings = () => {
@@ -197,11 +297,11 @@ export function SimpleBookingPage() {
   }
 
   const monthNames = [
-    'January', 'February', 'March', 'April', 'May', 'June',
-    'July', 'August', 'September', 'October', 'November', 'December'
+    'Janeiro', 'Fevereiro', 'Março', 'Abril', 'Maio', 'Junho',
+    'Julho', 'Agosto', 'Setembro', 'Outubro', 'Novembro', 'Dezembro'
   ]
 
-  const dayNames = ['Sun', 'Mon', 'Tue', 'Wed', 'Thu', 'Fri', 'Sat']
+  const dayNames = ['Dom', 'Seg', 'Ter', 'Qua', 'Qui', 'Sex', 'Sáb']
 
   return (
     <div className="bg-gray-900 min-h-screen p-4">
@@ -209,6 +309,16 @@ export function SimpleBookingPage() {
         <div className="mb-8">
           <h1 className="text-3xl font-bold text-white mb-2">Reservar Laboratório</h1>
           <p className="text-gray-300">Selecione uma data e horário para sua reserva</p>
+          {error && (
+            <div className="mt-4 p-3 bg-red-900/20 border border-red-500 rounded-md text-red-400 text-sm">
+              {error}
+            </div>
+          )}
+          {loading && (
+            <div className="mt-4 p-3 bg-blue-900/20 border border-blue-500 rounded-md text-blue-400 text-sm">
+              Carregando reservas...
+            </div>
+          )}
         </div>
 
         <div className="grid grid-cols-1 lg:grid-cols-3 gap-6">
@@ -342,7 +452,6 @@ export function SimpleBookingPage() {
               <Card>
                 <CardHeader className="border-b border-gray-800">
                   <CardTitle className="flex items-center gap-2">
-                    <MapPin className="h-5 w-5" />
                     Detalhes da Reserva
                   </CardTitle>
                   <CardDescription>
@@ -364,7 +473,7 @@ export function SimpleBookingPage() {
                         value={bookingData.userName}
                         onChange={(e) => handleInputChange('userName', e.target.value)}
                         disabled
-                        className="bg-gray-700 text-gray-400"
+                        className="bg-gray-700 text-gray-400 mt-2"
                         placeholder="Preenchido pelo login"
                       />
                       <p className="text-xs text-gray-400 mt-1">Este campo é preenchido automaticamente pelo seu login</p>
@@ -377,7 +486,7 @@ export function SimpleBookingPage() {
                         value={bookingData.course}
                         onChange={(e) => handleInputChange('course', e.target.value)}
                         required
-                        className="w-full p-2 border border-gray-600 bg-gray-800 text-white rounded-md focus:ring-2 focus:ring-[#00b97e] focus:border-[#00b97e]"
+                        className="w-full p-2 border border-gray-600 bg-gray-800 text-white rounded-md focus:ring-2 focus:ring-[#00b97e] focus:border-[#00b97e] mt-2"
                       >
                         <option value="">Selecione uma disciplina</option>
                         {availableCourses.map((course) => (
@@ -396,7 +505,7 @@ export function SimpleBookingPage() {
                         onChange={(e) => handleInputChange('annotation', e.target.value)}
                         placeholder="Adicione observações ou comentários sobre esta reserva..."
                         rows={3}
-                        className="w-full p-2 border border-gray-600 bg-gray-800 text-white rounded-md focus:ring-2 focus:ring-[#00b97e] focus:border-[#00b97e] placeholder-gray-400"
+                        className="w-full p-2 border border-gray-600 bg-gray-800 text-white rounded-md focus:ring-2 focus:ring-[#00b97e] focus:border-[#00b97e] placeholder-gray-400 mt-2"
                       />
                     </div>
                     
@@ -406,7 +515,7 @@ export function SimpleBookingPage() {
                         id="repeatType"
                         value={bookingData.repeatType}
                         onChange={(e) => handleInputChange('repeatType', e.target.value as 'none' | 'daily' | 'weekly' | 'monthly')}
-                        className="w-full p-2 border border-gray-600 bg-gray-800 text-white rounded-md focus:ring-2 focus:ring-[#00b97e] focus:border-[#00b97e]"
+                        className="w-full p-2 border border-gray-600 bg-gray-800 text-white rounded-md focus:ring-2 focus:ring-[#00b97e] focus:border-[#00b97e] mt-2"
                       >
                         <option value="none">Não repetir</option>
                         <option value="daily">Diariamente</option>
@@ -420,8 +529,8 @@ export function SimpleBookingPage() {
                       )}
                     </div>
                     
-                    <Button type="submit" className="w-full">
-                      Confirmar Reserva
+                    <Button type="submit" className="w-full" disabled={loading}>
+                      {loading ? 'Criando Reserva...' : 'Confirmar Reserva'}
                     </Button>
                   </form>
                 </CardContent>
