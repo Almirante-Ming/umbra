@@ -133,14 +133,34 @@ export function SimpleBookingPage() {
 
   const formatDate = (day: number) => {
     const year = currentDate.getFullYear()
-    const month = currentDate.getMonth()
-    const date = new Date(year, month, day)
-    return date.toISOString().split('T')[0]
+    const month = currentDate.getMonth() + 1 // JavaScript months are 0-based, so add 1
+    const dayStr = day.toString().padStart(2, '0')
+    const monthStr = month.toString().padStart(2, '0')
+    return `${year}-${monthStr}-${dayStr}`
+  }
+
+  const formatDateDisplay = (dateString: string) => {
+    // Parse the date string manually to avoid timezone issues
+    const [year, month, day] = dateString.split('-').map(Number)
+    const date = new Date(year, month - 1, day) // month - 1 because JavaScript months are 0-based
+    return date.toLocaleDateString('pt-BR', {
+      weekday: 'long',
+      year: 'numeric',
+      month: 'long',
+      day: 'numeric'
+    })
   }
 
   const isDateAvailable = (day: number) => {
     const today = new Date()
-    const date = new Date(currentDate.getFullYear(), currentDate.getMonth(), day)
+    const year = currentDate.getFullYear()
+    const month = currentDate.getMonth()
+    const date = new Date(year, month, day)
+    
+    // Set both dates to start of day to avoid time comparison issues
+    today.setHours(0, 0, 0, 0)
+    date.setHours(0, 0, 0, 0)
+    
     return date >= today
   }
 
@@ -257,7 +277,9 @@ export function SimpleBookingPage() {
   }
 
   const createRepeatedBookings = () => {
-    const baseDate = new Date(selectedDate)
+    // Parse the date string manually to avoid timezone issues
+    const [year, month, day] = selectedDate.split('-').map(Number)
+    const baseDate = new Date(year, month - 1, day) // month - 1 because JavaScript months are 0-based
     const bookings = []
     
     // Create repeated bookings based on repeat type
@@ -412,12 +434,7 @@ export function SimpleBookingPage() {
                       </div>
                     </div>
                     <div className="text-sm text-gray-300 mb-3">
-                      {new Date(selectedDate).toLocaleDateString('pt-BR', {
-                        weekday: 'long',
-                        year: 'numeric',
-                        month: 'long',
-                        day: 'numeric'
-                      })}
+                      {formatDateDisplay(selectedDate)}
                     </div>
                     <div className="text-xs text-gray-400 mb-3">
                       Clique nos horários individuais para selecioná-los, ou use "Reservar Dia Inteiro" para selecionar todos os horários disponíveis
@@ -455,18 +472,13 @@ export function SimpleBookingPage() {
                     Detalhes da Reserva
                   </CardTitle>
                   <CardDescription>
-                    {new Date(selectedDate).toLocaleDateString('pt-BR', {
-                      weekday: 'long',
-                      year: 'numeric',
-                      month: 'long',
-                      day: 'numeric'
-                    })} às {selectedTimes.join(', ')}
+                    {formatDateDisplay(selectedDate)} às {selectedTimes.join(', ')}
                   </CardDescription>
                 </CardHeader>
                 <CardContent>
                   <form onSubmit={handleBookingSubmit} className="space-y-4">
                     <div>
-                      <Label htmlFor="userName">Nome do Usuário</Label>
+                      <Label htmlFor="userName">Responsavel</Label>
                       <Input
                         id="userName"
                         type="text"
@@ -480,7 +492,7 @@ export function SimpleBookingPage() {
                     </div>
                     
                     <div>
-                      <Label htmlFor="course">Disciplina</Label>
+                      <Label htmlFor="course">Turma</Label>
                       <select
                         id="course"
                         value={bookingData.course}
@@ -488,7 +500,7 @@ export function SimpleBookingPage() {
                         required
                         className="w-full p-2 border border-gray-600 bg-gray-800 text-white rounded-md focus:ring-2 focus:ring-[#00b97e] focus:border-[#00b97e] mt-2"
                       >
-                        <option value="">Selecione uma disciplina</option>
+                        <option value="">Selecione uma turma</option>
                         {availableCourses.map((course) => (
                           <option key={course.id} value={course.id}>
                             {course.name}

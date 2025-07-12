@@ -76,6 +76,22 @@ export interface CreateBookingResponse {
   success: boolean;
 }
 
+export interface LabBookingResponse {
+  lab_name: string;
+  lab_nickname: string;
+  schedules: LabScheduleItem[];
+}
+
+export interface LabScheduleItem {
+  id: string;
+  user_id: string; // Bypassed on login
+  course: string;
+  date: string; // YYYY-MM-DD
+  times: string[]; // Array of time slots like ["09:00", "10:00"]
+  repeatType: 'none' | 'daily' | 'weekly' | 'monthly';
+  createdAt: string; // ISO 8601 datetime
+}
+
 // API Service functions
 export const bookingService = {
   // Get all bookings for a specific date range
@@ -158,6 +174,21 @@ export const bookingService = {
       return response.data.bookings;
     } catch (error) {
       console.error('Error fetching user bookings:', error);
+      throw error;
+    }
+  },
+
+  // Get bookings by lab with lab details
+  getBookingsByLab: async (labId: string, startDate?: string, endDate?: string): Promise<LabBookingResponse> => {
+    try {
+      const params = new URLSearchParams();
+      if (startDate) params.append('startDate', startDate);
+      if (endDate) params.append('endDate', endDate);
+      
+      const response = await api.get(`/bookings/lab/${labId}?${params.toString()}`);
+      return response.data;
+    } catch (error) {
+      console.error('Error fetching lab bookings:', error);
       throw error;
     }
   }

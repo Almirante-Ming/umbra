@@ -11,6 +11,8 @@ function App() {
   const [isAuthenticated, setIsAuthenticated] = useState(false)
   const [selectedLab, setSelectedLab] = useState<string>('')
 
+  console.log('App: Rendering with currentPage:', currentPage)
+
   const handleLogin = () => {
     setIsAuthenticated(true)
     setCurrentPage('lab-selection')
@@ -57,6 +59,7 @@ function App() {
 
   // Show lab selection page
   if (currentPage === 'lab-selection') {
+    console.log('App: Rendering LabSelection component')
     return <LabSelection onLabSelect={handleLabSelect} />
   }
 
