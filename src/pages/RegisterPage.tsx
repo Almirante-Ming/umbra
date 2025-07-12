@@ -14,7 +14,7 @@ import { ArrowLeft, AlertCircle, Loader2 } from 'lucide-react'
 type UserType = 'user' | 'admin'
 
 interface RegisterPageProps {
-  onRegister: () => void
+  onRegister: (user?: any) => void
   onBack: () => void
 }
 
@@ -75,10 +75,10 @@ export function RegisterPage({ onRegister, onBack }: RegisterPageProps) {
         
         // Try to import and use the service dynamically
         const { authService } = await import('../services/lumusService')
-        await authService.register(registerData)
+        const response = await authService.register(registerData)
         
         console.log('Registration successful')
-        onRegister()
+        onRegister(response.user)
       } catch (error: any) {
         console.error('Registration error:', error)
         setApiError(

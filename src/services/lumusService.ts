@@ -107,6 +107,15 @@ export interface Schedule {
   updated_at: string;
 }
 
+export interface Lab {
+  nickname: string;
+  name: string;
+  capacity: number;
+  location?: string;
+  active_bookings?: number;
+  available?: boolean;
+}
+
 export interface AuthResponse {
   access_token: string;
   user: User;
@@ -330,7 +339,13 @@ export const schedulesService = {
 
   async getSchedulesByDate(date: string): Promise<{ date: string; schedules: Schedule[]; total: number }> {
     const response = await api.get(`/schedules/by-date/${date}`);
-    return response.data;
+    // The API now returns an array directly, not an object with date/schedules/total
+    const schedules = response.data;
+    return {
+      date,
+      schedules,
+      total: schedules.length
+    };
   },
 
   async getSchedulesByLab(labNickname: string, params?: { start_date?: string; end_date?: string }): Promise<{ lab_nickname: string; schedules: Schedule[]; total: number }> {
@@ -339,20 +354,43 @@ export const schedulesService = {
   }
 };
 
-// Lab Service (static data for now)
+// Lab Service
 export const labService = {
-  getLabs() {
-    return [
-      { nickname: 'LAB01', name: 'Computer Lab 1', capacity: 30 },
-      { nickname: 'LAB02', name: 'Computer Lab 2', capacity: 25 },
-      { nickname: 'LAB03', name: 'Computer Lab 3', capacity: 35 },
-      { nickname: 'LAB04', name: 'Networking Lab', capacity: 20 },
-      { nickname: 'LAB05', name: 'Hardware Lab', capacity: 15 }
-    ];
+  async getLabs(): Promise<Lab[]> {
+    const response = await api.get('/labs');
+    return response.data.labs;
   },
 
-  getLabByNickname(nickname: string) {
-    return this.getLabs().find(lab => lab.nickname === nickname);
+  async getLabByNickname(nickname: string): Promise<Lab> {
+    const response = await api.get(`/labs/${nickname}`);
+    return response.data;
+  },
+
+  async getLabAvailability(nickname: string, params?: { start_date?: string; end_date?: string }): Promise<{
+    lab: Lab;
+    schedules: Schedule[];
+    total_bookings: number;
+  }> {
+    const response = await api.get(`/labs/${nickname}/availability`, { params });
+    return response.data;
+  }
+};
+
+// Public Services (no auth required)
+export const publicService = {
+  async getCourses(): Promise<Course[]> {
+    const response = await api.get('/courses/public');
+    return response.data.courses;
+  },
+  
+  async getSchedules(): Promise<Schedule[]> {
+    const response = await api.get('/schedules/public');
+    return response.data.schedules;
+  },
+  
+  async createSchedule(data: Partial<Schedule>): Promise<Schedule> {
+    const response = await api.post('/schedules/public', data);
+    return response.data;
   }
 };
 

@@ -13,7 +13,7 @@ import { Input } from "@/components/ui/input"
 import { Label } from "@/components/ui/label"
 
 interface LoginPageProps {
-  onLogin: () => void
+  onLogin: (user?: any) => void
   onGuestAccess: () => void
   onRegister: () => void
 }
@@ -23,15 +23,39 @@ export function LoginPage({ onLogin, onGuestAccess, onRegister }: LoginPageProps
     email: '',
     password: ''
   })
+  const [loading, setLoading] = useState(false)
+  const [error, setError] = useState<string | null>(null)
 
-  const handleSubmit = (e: React.FormEvent) => {
+  const handleSubmit = async (e: React.FormEvent) => {
     e.preventDefault()
+    setLoading(true)
+    setError(null)
     
-    // Here you would typically authenticate the user
-    console.log('Login submitted:', formData)
-    
-    // For now, just call the onLogin callback
-    onLogin()
+    try {
+      // Dynamic import to avoid loading authService on initial page load
+      const { authService } = await import('../services/lumusService')
+      
+      // Authenticate the user
+      const response = await authService.login(formData)
+      
+      console.log('Login successful:', response.user)
+      
+      // Call the onLogin callback to navigate to the next page
+      onLogin(response.user)
+    } catch (err: any) {
+      console.error('Login error:', err)
+      
+      // Handle different error types
+      if (err.response?.status === 401) {
+        setError('Email ou senha incorretos')
+      } else if (err.code === 'NETWORK_ERROR' || err.message?.includes('Network Error')) {
+        setError('Erro de conexão. Verifique sua internet e tente novamente.')
+      } else {
+        setError('Erro no login. Tente novamente.')
+      }
+    } finally {
+      setLoading(false)
+    }
   }
 
   const handleInputChange = (field: string, value: string) => {
@@ -61,6 +85,11 @@ export function LoginPage({ onLogin, onGuestAccess, onRegister }: LoginPageProps
             </CardAction>
           </CardHeader>
           <CardContent>
+            {error && (
+              <div className="mb-4 p-3 bg-red-900/50 border border-red-600 rounded-md">
+                <p className="text-red-200 text-sm">{error}</p>
+              </div>
+            )}
             <form onSubmit={handleSubmit}>
               <div className="flex flex-col gap-6">
                 <div className="grid gap-2">
@@ -72,7 +101,8 @@ export function LoginPage({ onLogin, onGuestAccess, onRegister }: LoginPageProps
                     value={formData.email}
                     onChange={(e) => handleInputChange('email', e.target.value)}
                     required
-                    className="bg-gray-700 border-gray-600 text-white placeholder-gray-400 focus:border-[#00b97e] focus:ring-[#00b97e]"
+                    disabled={loading}
+                    className="bg-gray-700 border-gray-600 text-white placeholder-gray-400 focus:border-[#00b97e] focus:ring-[#00b97e] disabled:opacity-50"
                   />
                 </div>
                 <div className="grid gap-2">
@@ -91,7 +121,8 @@ export function LoginPage({ onLogin, onGuestAccess, onRegister }: LoginPageProps
                     value={formData.password}
                     onChange={(e) => handleInputChange('password', e.target.value)}
                     required 
-                    className="bg-gray-700 border-gray-600 text-white placeholder-gray-400 focus:border-[#00b97e] focus:ring-[#00b97e]"
+                    disabled={loading}
+                    className="bg-gray-700 border-gray-600 text-white placeholder-gray-400 focus:border-[#00b97e] focus:ring-[#00b97e] disabled:opacity-50"
                   />
                 </div>
               </div>
@@ -100,12 +131,18 @@ export function LoginPage({ onLogin, onGuestAccess, onRegister }: LoginPageProps
           <CardFooter>
             <Button 
               type="submit" 
-              className="w-full bg-[#00b97e] hover:bg-[#059669] text-white"
+              className="w-full bg-[#00b97e] hover:bg-[#059669] text-white disabled:opacity-50"
               onClick={handleSubmit}
+              disabled={loading}
             >
-              Entrar
+              {loading ? 'Entrando...' : 'Entrar'}
             </Button>
           </CardFooter>
+          {error && (
+            <div className="p-4 text-red-500 text-sm text-center">
+              {error}
+            </div>
+          )}
         </Card>
         
         <div className="mt-6 text-center">
@@ -114,7 +151,7 @@ export function LoginPage({ onLogin, onGuestAccess, onRegister }: LoginPageProps
             onClick={onGuestAccess}
             className="w-full border-[#00b97e] text-[#00b97e] hover:bg-[#00b97e] hover:text-white"
           >
-            Continuar como Visitante - Reservar Laboratório
+            Continuar como Visitante - Visualizar Reservas
           </Button>
         </div>
       </div>

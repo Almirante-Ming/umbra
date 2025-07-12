@@ -10,11 +10,13 @@ function App() {
   const [currentPage, setCurrentPage] = useState<CurrentPage>('login')
   const [isAuthenticated, setIsAuthenticated] = useState(false)
   const [selectedLab, setSelectedLab] = useState<string>('')
+  const [currentUser, setCurrentUser] = useState<any>(null)
 
   console.log('App: Rendering with currentPage:', currentPage)
 
-  const handleLogin = () => {
+  const handleLogin = (user?: any) => {
     setIsAuthenticated(true)
+    setCurrentUser(user)
     setCurrentPage('lab-selection')
   }
 
@@ -22,8 +24,9 @@ function App() {
     setCurrentPage('register')
   }
 
-  const handleRegisterComplete = () => {
+  const handleRegisterComplete = (user?: any) => {
     setIsAuthenticated(true)
+    setCurrentUser(user)
     setCurrentPage('lab-selection')
   }
 
@@ -32,7 +35,8 @@ function App() {
   }
 
   const handleGuestAccess = () => {
-    setCurrentPage('simple-booking')
+    setCurrentUser({ name: 'Convidado', email: 'guest@example.com' })
+    setCurrentPage('lab-selection')
   }
 
   const handleLabSelect = (labId: string) => {
@@ -43,6 +47,7 @@ function App() {
 
   const handleLogout = () => {
     setIsAuthenticated(false)
+    setCurrentUser(null)
     setSelectedLab('')
     setCurrentPage('login')
   }
@@ -90,23 +95,12 @@ function App() {
               
               {!isAuthenticated && (
                 <button
-                  onClick={handleLogin}
+                  onClick={() => setCurrentPage('login')}
                   className="text-sm text-gray-300 hover:text-[#00b97e] transition-colors"
                 >
                   Entrar
                 </button>
               )}
-              
-              <button
-                onClick={() => setCurrentPage('simple-booking')}
-                className={`px-3 py-2 rounded-md text-sm font-medium transition-colors ${
-                  currentPage === 'simple-booking'
-                    ? 'bg-[#00b97e] text-white'
-                    : 'text-gray-300 hover:text-[#00b97e] hover:bg-gray-700'
-                }`}
-              >
-                Reservar
-              </button>
               
               {isAuthenticated && (
                 <button
@@ -125,7 +119,7 @@ function App() {
       <main>
         {currentPage === 'simple-booking' && (
           <div>
-            <SimpleBookingPage />
+            <SimpleBookingPage currentUser={currentUser} />
           </div>
         )}
         {currentPage !== 'simple-booking' && (

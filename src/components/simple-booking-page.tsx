@@ -10,41 +10,94 @@ interface BookingFormData {
   userName: string
   course: string
   annotation: string
-  repeatType: 'none' | 'daily' | 'weekly' | 'monthly'
 }
 
-export function SimpleBookingPage() {
+interface Course {
+  id: number
+  name: string
+  nickname: string
+  course_code: string
+  period: string
+  capacity: number
+  description?: string
+}
+
+interface SimpleBookingPageProps {
+  currentUser?: {
+    name?: string
+    email?: string
+    id?: string
+  }
+}
+
+export function SimpleBookingPage({ currentUser }: SimpleBookingPageProps) {
   const [currentDate, setCurrentDate] = useState(new Date())
   const [selectedDate, setSelectedDate] = useState<string>('')
   const [selectedTimes, setSelectedTimes] = useState<string[]>([])
   const [showBookingForm, setShowBookingForm] = useState(false)
   const [bookingData, setBookingData] = useState<BookingFormData>({
-    userName: 'João Silva', // This would be bypassed by login in real implementation
+    userName: currentUser?.name || 'Convidado',
     course: '',
-    annotation: '',
-    repeatType: 'none'
+    annotation: ''
   })
   const [bookings, setBookings] = useState<BookingData[]>([])
+  const [courses, setCourses] = useState<Course[]>([])
   const [loading, setLoading] = useState(false)
   const [error, setError] = useState<string | null>(null)
+  const [isInfoMessage, setIsInfoMessage] = useState(false)
+  const [coursesLoading, setCoursesLoading] = useState(false)
 
-  const availableCourses = [
-    { id: 'mathematics', name: 'Matemática' },
-    { id: 'physics', name: 'Física' },
-    { id: 'chemistry', name: 'Química' },
-    { id: 'biology', name: 'Biologia' },
-    { id: 'computer-science', name: 'Ciência da Computação' },
-    { id: 'engineering', name: 'Engenharia' },
-    { id: 'electronics', name: 'Eletrônica' },
-    { id: 'automation', name: 'Automação' }
-  ]
+  // Check if current user is a guest
+  const isGuestUser = !currentUser || currentUser.name === 'Convidado' || !currentUser.name
+
+  // Update booking data when current user changes
+  useEffect(() => {
+    setBookingData(prev => ({
+      ...prev,
+      userName: currentUser?.name || 'Convidado'
+    }))
+  }, [currentUser])
+
+  // Load courses from API
+  useEffect(() => {
+    const fetchCourses = async () => {
+      try {
+        setCoursesLoading(true)
+        setError(null)
+        
+        // Dynamic import to avoid loading coursesService on initial page load
+        const { coursesService } = await import('../services/lumusService')
+        
+        // Fetch courses from API (no auth required now)
+        const response = await coursesService.getCourses()
+        setCourses(response.data)
+        
+        console.log('Courses loaded:', response.data)
+      } catch (err: any) {
+        console.error('Error fetching courses:', err)
+        
+        // Handle different error types
+        if (err.response?.status === 401) {
+          setError('Não autorizado. Faça login novamente.')
+        } else if (err.code === 'NETWORK_ERROR' || err.message?.includes('Network Error')) {
+          setError('Erro de conexão. Verifique sua internet.')
+        } else {
+          setError('Erro ao carregar cursos. Tente novamente.')
+        }
+      } finally {
+        setCoursesLoading(false)
+      }
+    }
+
+    fetchCourses()
+  }, [])
 
   // Custom time slots as specified
   const timeSlots = [
     '07:00', '07:45', '08:30', '09:05', '09:15', '10:00', '10:45', 
     '11:30', '12:15', '13:00', '13:45', '14:30', '15:05', '15:15', 
     '16:00', '16:45', '17:30', '18:15', '19:00', '19:45', '20:30', 
-    '21:05', '21:15', '22:00', '22:45', '23:30'
+    '21:05', '21:15', '22:00', '22:45'
   ]
 
   // Load bookings from API
@@ -54,46 +107,36 @@ export function SimpleBookingPage() {
         setLoading(true)
         setError(null)
         
-        // For now, use mock data to avoid API issues
-        // TODO: Replace with actual API call when backend is ready
-        // const response = await bookingService.getBookings()
-        // setBookings(response.bookings)
+        // Dynamic import to avoid loading schedulesService on initial page load
+        const { schedulesService } = await import('../services/lumusService')
         
-        // Mock data for demonstration
-        const mockBookings: BookingData[] = [
-          {
-            id: '1',
-            date: '2025-07-15',
-            times: ['09:00', '10:00', '14:00'],
-            userName: 'João Silva',
-            course: 'physics',
-            annotation: 'Experimento de óptica',
-            repeatType: 'none'
-          },
-          {
-            id: '2',
-            date: '2025-07-16',
-            times: ['11:00', '15:30'],
-            userName: 'Maria Santos',
-            course: 'chemistry',
-            annotation: 'Análise química',
-            repeatType: 'none'
-          },
-          {
-            id: '3',
-            date: '2025-07-17',
-            times: ['13:00', '16:00'],
-            userName: 'Carlos Oliveira',
-            course: 'biology',
-            annotation: 'Microscopia',
-            repeatType: 'none'
-          }
-        ]
+        // Fetch schedules from API (no auth required now)
+        const response = await schedulesService.getSchedules()
         
-        setBookings(mockBookings)
-      } catch (err) {
+        // Convert schedules to BookingData format
+        const convertedBookings: BookingData[] = response.data.map(schedule => ({
+          id: schedule.id.toString(),
+          date: schedule.date,
+          times: schedule.times,
+          userName: schedule.user_name,
+          course: schedule.course_code,
+          annotation: schedule.annotation || '',
+          repeatType: 'none' // Default to 'none' since we removed repeat functionality
+        }))
+        
+        setBookings(convertedBookings)
+        console.log('Bookings loaded:', convertedBookings)
+      } catch (err: any) {
         console.error('Error fetching bookings:', err)
-        setError('Erro ao carregar reservas.')
+        
+        // Handle different error types
+        if (err.response?.status === 401) {
+          setError('Não autorizado. Faça login novamente.')
+        } else if (err.code === 'NETWORK_ERROR' || err.message?.includes('Network Error')) {
+          setError('Erro de conexão. Verifique sua internet.')
+        } else {
+          setError('Erro ao carregar reservas. Tente novamente.')
+        }
       } finally {
         setLoading(false)
       }
@@ -106,6 +149,25 @@ export function SimpleBookingPage() {
   const getBookedSlotsForDate = (date: string): string[] => {
     const dateBookings = bookings.filter(booking => booking.date === date)
     return dateBookings.flatMap(booking => booking.times)
+  }
+
+  // Get booking details for a specific time slot
+  const getBookingDetailsForTime = (date: string, time: string) => {
+    const dateBookings = bookings.filter(booking => 
+      booking.date === date && booking.times.includes(time)
+    )
+    return dateBookings[0] // Return the first booking for this time slot
+  }
+
+  // Get count of available slots for selected date
+  const getAvailabilityStats = (date: string) => {
+    const bookedSlots = getBookedSlotsForDate(date)
+    const availableSlots = timeSlots.filter(time => !bookedSlots.includes(time))
+    return {
+      total: timeSlots.length,
+      booked: bookedSlots.length,
+      available: availableSlots.length
+    }
   }
 
   const generateCalendar = () => {
@@ -181,6 +243,40 @@ export function SimpleBookingPage() {
   }
 
   const handleTimeSelect = (time: string) => {
+    // For guest users, only allow viewing of booked time slots
+    if (isGuestUser) {
+      if (isTimeSlotBooked(time)) {
+        // Show booking details for guests
+        const booking = getBookingDetailsForTime(selectedDate, time)
+        setError(`Horário ${time} reservado por ${booking?.userName || 'usuário'} - ${booking?.course || 'curso não especificado'}${booking?.annotation ? ` (${booking.annotation})` : ''}`)
+        setIsInfoMessage(true)
+        setTimeout(() => {
+          setError(null)
+          setIsInfoMessage(false)
+        }, 5000)
+        return
+      } else {
+        // Block guest users from selecting available times
+        setError('Visitantes não podem fazer reservas. Faça login para reservar laboratórios.')
+        setIsInfoMessage(false)
+        setTimeout(() => setError(null), 5000)
+        return
+      }
+    }
+
+    // Don't allow selection of already booked times
+    if (isTimeSlotBooked(time)) {
+      const booking = getBookingDetailsForTime(selectedDate, time)
+      setError(`Horário ${time} já está reservado por ${booking?.userName || 'outro usuário'}`)
+      setIsInfoMessage(false)
+      setTimeout(() => setError(null), 3000) // Clear error after 3 seconds
+      return
+    }
+    
+    // Clear any existing errors
+    setError(null)
+    setIsInfoMessage(false)
+    
     setSelectedTimes(prev => {
       if (prev.includes(time)) {
         // Remove time if already selected
@@ -198,6 +294,14 @@ export function SimpleBookingPage() {
   }
 
   const handleReserveFullDay = () => {
+    // Block guest users from making reservations
+    if (isGuestUser) {
+      setError('Visitantes não podem fazer reservas. Por favor, faça login para reservar laboratórios.')
+      setIsInfoMessage(false)
+      setTimeout(() => setError(null), 5000) // Clear error after 5 seconds
+      return
+    }
+
     // Get all available time slots for the selected date (not booked)
     const availableSlots = timeSlots.filter(time => !isTimeSlotBooked(time))
     setSelectedTimes(availableSlots)
@@ -212,103 +316,88 @@ export function SimpleBookingPage() {
   const handleBookingSubmit = async (e: React.FormEvent) => {
     e.preventDefault()
     
+    // Block guest users from submitting bookings
+    if (isGuestUser) {
+      setError('Visitantes não podem fazer reservas. Por favor, faça login para reservar laboratórios.')
+      setIsInfoMessage(false)
+      return
+    }
+    
     try {
       setLoading(true)
       setError(null)
 
-      // For now, simulate API call with mock data
-      // TODO: Replace with actual API call when backend is ready
-      /*
-      const bookingRequest: CreateBookingRequest = {
-        date: selectedDate,
-        times: selectedTimes,
-        userName: bookingData.userName,
-        course: bookingData.course,
-        annotation: bookingData.annotation,
-        repeatType: bookingData.repeatType
+      // Validate that no selected times are already booked
+      const bookedSlots = getBookedSlotsForDate(selectedDate)
+      const conflictingTimes = selectedTimes.filter(time => bookedSlots.includes(time))
+      
+      if (conflictingTimes.length > 0) {
+        setError(`Os seguintes horários já estão reservados: ${conflictingTimes.join(', ')}. Por favor, selecione outros horários.`)
+        return
       }
 
-      const response = await bookingService.createBooking(bookingRequest)
-      */
+      // Dynamic import to avoid loading schedulesService on initial page load
+      const { schedulesService } = await import('../services/lumusService')
       
-      // Simulate API delay
-      await new Promise(resolve => setTimeout(resolve, 1000))
-      
-      // Create mock booking
-      const newBooking: BookingData = {
-        id: Date.now().toString(),
+      // Create booking request
+      const bookingRequest = {
         date: selectedDate,
         times: selectedTimes,
-        userName: bookingData.userName,
-        course: bookingData.course,
+        user_name: bookingData.userName,
+        course_code: bookingData.course,
         annotation: bookingData.annotation,
-        repeatType: bookingData.repeatType,
-        status: 'confirmed'
+        repeat_type: 'NONE' as 'NONE' | 'DAILY' | 'WEEKLY' | 'MONTHLY',
+        lab_nickname: 'LAB01', // Default lab for now
+        status: 'PENDING' as 'PENDING' | 'CONFIRMED' | 'CANCELLED',
+        user_id: 'guest' // Guest user ID
+      }
+
+      // Submit the booking to the API
+      const response = await schedulesService.createSchedule(bookingRequest)
+      
+      // Convert response to BookingData format
+      const newBooking: BookingData = {
+        id: response.id.toString(),
+        date: response.date,
+        times: response.times,
+        userName: response.user_name,
+        course: response.course_code,
+        annotation: response.annotation || '',
+        repeatType: 'none' // Default to 'none' since we removed repeat functionality
       }
       
       // Add the new booking to local state
       setBookings(prev => [...prev, newBooking])
       
-      // Create repeated bookings if needed
-      if (bookingData.repeatType !== 'none') {
-        const repeatedBookings = createRepeatedBookings()
-        console.log('Repeated bookings to create:', repeatedBookings)
-      }
-      
       // Reset form
       setBookingData({
-        userName: 'João Silva', // Keep the user name from login
+        userName: currentUser?.name || 'Convidado', // Keep the current user's name
         course: '',
-        annotation: '',
-        repeatType: 'none'
+        annotation: ''
       })
       setShowBookingForm(false)
       setSelectedDate('')
       setSelectedTimes([])
       
       alert('Reserva criada com sucesso!')
-    } catch (err) {
+    } catch (err: any) {
       console.error('Error creating booking:', err)
-      setError('Erro ao criar reserva. Tente novamente.')
-      alert('Erro ao criar reserva. Tente novamente.')
+      
+      // Handle different error types
+      if (err.response?.status === 401) {
+        setError('Não autorizado. Faça login novamente.')
+      } else if (err.response?.status === 400) {
+        setError('Dados inválidos. Verifique os campos preenchidos.')
+      } else if (err.code === 'NETWORK_ERROR' || err.message?.includes('Network Error')) {
+        setError('Erro de conexão. Verifique sua internet.')
+      } else {
+        setError('Erro ao criar reserva. Tente novamente.')
+      }
+      
+      alert(error || 'Erro ao criar reserva. Tente novamente.')
     } finally {
       setLoading(false)
     }
-  }
-
-  const createRepeatedBookings = () => {
-    // Parse the date string manually to avoid timezone issues
-    const [year, month, day] = selectedDate.split('-').map(Number)
-    const baseDate = new Date(year, month - 1, day) // month - 1 because JavaScript months are 0-based
-    const bookings = []
-    
-    // Create repeated bookings based on repeat type
-    for (let i = 1; i <= 10; i++) { // Create 10 repeated bookings as example
-      const nextDate = new Date(baseDate)
-      
-      switch (bookingData.repeatType) {
-        case 'daily':
-          nextDate.setDate(baseDate.getDate() + i)
-          break
-        case 'weekly':
-          nextDate.setDate(baseDate.getDate() + (i * 7))
-          break
-        case 'monthly':
-          nextDate.setMonth(baseDate.getMonth() + i)
-          break
-        default:
-          continue
-      }
-      
-      bookings.push({
-        date: nextDate.toISOString().split('T')[0],
-        times: selectedTimes,
-        ...bookingData
-      })
-    }
-    
-    console.log('Repeated bookings created:', bookings)
-    return bookings
   }
 
   const handleInputChange = (field: keyof BookingFormData, value: string) => {
@@ -329,10 +418,21 @@ export function SimpleBookingPage() {
     <div className="bg-gray-900 min-h-screen p-4">
       <div className="max-w-7xl mx-auto">
         <div className="mb-8">
-          <h1 className="text-3xl font-bold text-white mb-2">Reservar Laboratório</h1>
-          <p className="text-gray-300">Selecione uma data e horário para sua reserva</p>
+          <h1 className="text-3xl font-bold text-white mb-2">
+            {isGuestUser ? 'Visualizar Reservas do Laboratório' : 'Reservar Laboratório'}
+          </h1>
+          <p className="text-gray-300">
+            {isGuestUser 
+              ? 'Visualize todas as reservas e horários ocupados. Faça login para fazer novas reservas.'
+              : 'Selecione uma data e horário para sua reserva'
+            }
+          </p>
           {error && (
-            <div className="mt-4 p-3 bg-red-900/20 border border-red-500 rounded-md text-red-400 text-sm">
+            <div className={`mt-4 p-3 rounded-md text-sm ${
+              isInfoMessage 
+                ? 'bg-blue-900/20 border border-blue-500 text-blue-400' 
+                : 'bg-red-900/20 border border-red-500 text-red-400'
+            }`}>
               {error}
             </div>
           )}
@@ -408,11 +508,25 @@ export function SimpleBookingPage() {
                     <div className="flex items-center justify-between mb-3">
                       <h3 className="text-lg font-medium text-white">Horários Disponíveis</h3>
                       <div className="flex items-center gap-2">
+                        {(() => {
+                          const stats = getAvailabilityStats(selectedDate)
+                          return (
+                            <div className="text-sm text-gray-400 mr-2">
+                              {stats.available} de {stats.total} horários disponíveis
+                            </div>
+                          )
+                        })()}
                         <Button
                           variant="outline"
                           size="sm"
                           onClick={handleReserveFullDay}
-                          className="text-xs bg-[#00b97e] hover:bg-[#00b97e]/80 text-white border-[#00b97e]"
+                          disabled={isGuestUser}
+                          className={`text-xs border-[#00b97e] ${
+                            isGuestUser 
+                              ? 'bg-gray-600 text-gray-400 cursor-not-allowed opacity-50' 
+                              : 'bg-[#00b97e] hover:bg-[#00b97e]/80 text-white'
+                          }`}
+                          title={isGuestUser ? 'Faça login para fazer reservas' : 'Reservar todos os horários disponíveis'}
                         >
                           Reservar Dia Inteiro
                         </Button>
@@ -437,27 +551,111 @@ export function SimpleBookingPage() {
                       {formatDateDisplay(selectedDate)}
                     </div>
                     <div className="text-xs text-gray-400 mb-3">
-                      Clique nos horários individuais para selecioná-los, ou use "Reservar Dia Inteiro" para selecionar todos os horários disponíveis
+                      {isGuestUser 
+                        ? 'Visitantes podem visualizar todas as reservas. Clique nos horários ocupados para ver detalhes ou faça login para criar novas reservas.'
+                        : 'Clique nos horários individuais para selecioná-los, ou use "Reservar Dia Inteiro" para selecionar todos os horários disponíveis'
+                      }
                     </div>
                     <div className="grid grid-cols-6 gap-2">
-                      {timeSlots.map((time) => (
-                        <Button
-                          key={time}
-                          variant={selectedTimes.includes(time) ? "default" : "outline"}
-                          size="sm"
-                          onClick={() => handleTimeSelect(time)}
-                          disabled={isTimeSlotBooked(time)}
-                          className="text-sm"
-                        >
-                          {time}
-                          {isTimeSlotBooked(time) && (
-                            <span className="ml-1 text-xs">(Ocupado)</span>
-                          )}
-                        </Button>
-                      ))}
+                      {timeSlots.map((time) => {
+                        const isBooked = isTimeSlotBooked(time)
+                        const isSelected = selectedTimes.includes(time)
+                        const isDisabledForGuest = isGuestUser && !isBooked // Guests can click booked slots to view details
+                        
+                        return (
+                          <Button
+                            key={time}
+                            variant={isSelected ? "default" : "outline"}
+                            size="sm"
+                            onClick={() => handleTimeSelect(time)}
+                            disabled={isDisabledForGuest}
+                            className={`text-sm transition-all duration-200 ${
+                              isBooked 
+                                ? 'bg-red-900/50 border-red-600 text-red-300 cursor-pointer opacity-80 hover:opacity-100' 
+                                : isDisabledForGuest
+                                  ? 'bg-gray-700 border-gray-600 text-gray-500 cursor-not-allowed opacity-50'
+                                  : isSelected 
+                                    ? 'bg-[#00b97e] hover:bg-[#059669] text-white' 
+                                    : 'border-gray-600 text-gray-300 hover:border-[#00b97e] hover:text-[#00b97e]'
+                            }`}
+                            title={
+                              isBooked 
+                                ? isGuestUser 
+                                  ? 'Clique para ver detalhes da reserva' 
+                                  : 'Horário já reservado'
+                                : isDisabledForGuest 
+                                  ? 'Faça login para fazer reservas'
+                                  : 'Clique para selecionar'
+                            }
+                          >
+                            {time}
+                            {isBooked && (
+                              <span className="ml-1 text-xs">🔒</span>
+                            )}
+                          </Button>
+                        )
+                      })}
+                    </div>
+                    
+                    {/* Legend */}
+                    <div className="mt-4 flex flex-wrap gap-4 text-xs">
+                      {!isGuestUser && (
+                        <div className="flex items-center gap-1">
+                          <div className="w-3 h-3 bg-[#00b97e] rounded"></div>
+                          <span className="text-gray-400">Selecionado</span>
+                        </div>
+                      )}
+                      <div className="flex items-center gap-1">
+                        <div className="w-3 h-3 bg-gray-700 border border-gray-600 rounded"></div>
+                        <span className="text-gray-400">{isGuestUser ? 'Disponível para reserva' : 'Disponível'}</span>
+                      </div>
+                      <div className="flex items-center gap-1">
+                        <div className="w-3 h-3 bg-red-900/50 border border-red-600 rounded"></div>
+                        <span className="text-gray-400">{isGuestUser ? 'Ocupado (clique para detalhes)' : 'Ocupado'}</span>
+                      </div>
+                      {isGuestUser && (
+                        <div className="flex items-center gap-1">
+                          <div className="w-3 h-3 bg-yellow-600/50 border border-yellow-500 rounded"></div>
+                          <span className="text-gray-400">Faça login para reservar</span>
+                        </div>
+                      )}
                     </div>
                   </div>
                 )}
+
+                {/* Existing Reservations for Selected Date */}
+                {selectedDate && (() => {
+                  const dateBookings = bookings.filter(booking => booking.date === selectedDate)
+                  return dateBookings.length > 0 ? (
+                    <div className="mt-6 p-4 bg-gray-800/50 rounded-lg border border-gray-700">
+                      <h4 className="text-md font-medium text-white mb-3">
+                        Reservas Existentes para {formatDateDisplay(selectedDate)}
+                      </h4>
+                      <div className="space-y-2">
+                        {dateBookings.map((booking, index) => (
+                          <div key={index} className="flex items-center justify-between p-2 bg-gray-900/50 rounded border border-gray-600">
+                            <div className="flex items-center gap-3">
+                              <div className="w-2 h-2 bg-red-500 rounded-full"></div>
+                              <div>
+                                <div className="text-sm font-medium text-white">
+                                  {booking.userName}
+                                </div>
+                                <div className="text-xs text-gray-400">
+                                  {booking.course} • {booking.times.join(', ')}
+                                </div>
+                              </div>
+                            </div>
+                            <div className="text-xs text-gray-400">
+                              {booking.annotation && booking.annotation.length > 0 
+                                ? booking.annotation 
+                                : 'Sem observações'}
+                            </div>
+                          </div>
+                        ))}
+                      </div>
+                    </div>
+                  ) : null
+                })()} 
               </CardContent>
             </Card>
           </div>
@@ -478,7 +676,7 @@ export function SimpleBookingPage() {
                 <CardContent>
                   <form onSubmit={handleBookingSubmit} className="space-y-4">
                     <div>
-                      <Label htmlFor="userName">Responsavel</Label>
+                      <Label htmlFor="userName">{currentUser?.name || 'Responsável'}</Label>
                       <Input
                         id="userName"
                         type="text"
@@ -498,12 +696,15 @@ export function SimpleBookingPage() {
                         value={bookingData.course}
                         onChange={(e) => handleInputChange('course', e.target.value)}
                         required
-                        className="w-full p-2 border border-gray-600 bg-gray-800 text-white rounded-md focus:ring-2 focus:ring-[#00b97e] focus:border-[#00b97e] mt-2"
+                        disabled={coursesLoading}
+                        className="w-full p-2 border border-gray-600 bg-gray-800 text-white rounded-md focus:ring-2 focus:ring-[#00b97e] focus:border-[#00b97e] mt-2 disabled:opacity-50"
                       >
-                        <option value="">Selecione uma turma</option>
-                        {availableCourses.map((course) => (
-                          <option key={course.id} value={course.id}>
-                            {course.name}
+                        <option value="">
+                          {coursesLoading ? 'Carregando turmas...' : 'Selecione uma turma'}
+                        </option>
+                        {courses.map((course) => (
+                          <option key={course.id} value={course.course_code}>
+                            {course.name} ({course.course_code})
                           </option>
                         ))}
                       </select>
@@ -519,26 +720,6 @@ export function SimpleBookingPage() {
                         rows={3}
                         className="w-full p-2 border border-gray-600 bg-gray-800 text-white rounded-md focus:ring-2 focus:ring-[#00b97e] focus:border-[#00b97e] placeholder-gray-400 mt-2"
                       />
-                    </div>
-                    
-                    <div>
-                      <Label htmlFor="repeatType">Repetir Reserva</Label>
-                      <select
-                        id="repeatType"
-                        value={bookingData.repeatType}
-                        onChange={(e) => handleInputChange('repeatType', e.target.value as 'none' | 'daily' | 'weekly' | 'monthly')}
-                        className="w-full p-2 border border-gray-600 bg-gray-800 text-white rounded-md focus:ring-2 focus:ring-[#00b97e] focus:border-[#00b97e] mt-2"
-                      >
-                        <option value="none">Não repetir</option>
-                        <option value="daily">Diariamente</option>
-                        <option value="weekly">Semanalmente</option>
-                        <option value="monthly">Mensalmente</option>
-                      </select>
-                      {bookingData.repeatType !== 'none' && (
-                        <p className="text-xs text-[#00b97e] mt-1">
-                          Isso criará 10 reservas repetidas {bookingData.repeatType === 'daily' ? 'diariamente' : bookingData.repeatType === 'weekly' ? 'semanalmente' : 'mensalmente'}
-                        </p>
-                      )}
                     </div>
                     
                     <Button type="submit" className="w-full" disabled={loading}>
